@@ -238,6 +238,46 @@ function test(path=pwd(); registry_deps::Vector{<:AbstractString}=String[])
                 else
                     @debug "Compat.toml file does not exist" compatfile
                 end
+
+                # https://github.com/JuliaRegistries/RegistryCI.jl/issues/522
+                # For every version, each compat entry has a corresponding deps entry.
+                #
+                # Note: it is legal for a package to have Compat.toml but not have
+                # Deps.toml. Specifically, this is legal if (and only if) the package
+                # does not have any dependencies, and does have a compat entry for `julia`.
+                for weak in ["", "Weak"]
+                    compatfile = abspath(data["path"], "$(weak)Compat.toml")
+                    depsfile = abspath(data["path"], "$(weak)Deps.toml")
+                    if isfile(compatfile)
+                        if weak == "Weak"
+                            # It is NOT legal for a package to have WeakCompat.toml but not have
+                            # WeakDeps.toml
+                            Test.@test isfile(depsfile)
+                        end
+                        compat_uncompressed = RegistryTools.Compress.load(compatfile)
+                        deps_uncompressed = isfile(depsfile) ? RegistryTools.Compress.load(depsfile) : Dict()
+                        for v in keys(vers)
+                            compat_for_this_v = get(compat_uncompressed, v, Dict())
+                            deps_for_this_v = get(deps_uncompressed, v, Dict())
+                            Test.@test compat_for_this_v isa AbstractDict
+                            Test.@test deps_for_this_v isa AbstractDict
+                            for compat_pkgname in keys(compat_for_this_v)
+                                if weak == "Weak"
+                                    # It is legal to have `julia` in Compat.toml.
+                                    # It is NOT legal to have `julia` in WeakCompat.toml
+                                    Test.@test compat_pkgname != "julia"
+                                end
+                                # If the package has a compat entry for `julia`, there
+                                # is no need to have `julia` listed in Deps.toml.
+                                # However, every other (weak)compat entry needs to be listed
+                                # in (Weak)Deps.toml.
+                                if compat_pkgname != "julia"
+                                    Test.@test haskey(deps_for_this_v, compat_pkgname)
+                                end
+                            end
+                        end
+                    end
+                end
             end
             # Make sure all paths are unique
             path_parts = [splitpath(data["path"]) for (_, data) in reg["packages"]]
