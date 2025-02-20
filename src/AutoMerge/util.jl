@@ -106,7 +106,7 @@ end
 function _new_package_section(n)
     return string("## $n. New package registration", "\n\n",
     "Please make sure that you have read the ",
-    "[package naming guidelines](https://julialang.github.io/Pkg.jl/dev/creating-packages/#Package-naming-guidelines-1).\n\n")
+    "[package naming guidelines](https://pkgdocs.julialang.org/v1/creating-packages/#Package-naming-rules).\n\n")
 end
 
 function _what_next_if_fail(n; point_to_slack=false)
