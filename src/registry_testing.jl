@@ -30,13 +30,12 @@ function _include_this_registry(
     end
     for fieldvalue in all_fieldvalues
         for registry_deps_name in registry_deps_names
-            if strip(fieldvalue) == strip(registry_deps_name)
-                return true
-            end
-            if strip(fieldvalue) == strip("$(registry_deps_name).git")
-                return true
-            end
-            if strip("$(fieldvalue).git") == strip(registry_deps_name)
+            fieldvalue = strip(fieldvalue)
+            registry_deps_name = strip(registry_deps_name)
+            ref = Set((lowercase(basename(fieldvalue)), fieldvalue, "$(fieldvalue).git"))
+            dep = Set((lowercase(basename(registry_deps_name)), registry_deps_name, "$(registry_deps_name).git"))
+            @debug "Registry match check" registry_spec=ref extra_deps=dep
+            if !isempty(intersect(ref, dep))
                 return true
             end
         end
