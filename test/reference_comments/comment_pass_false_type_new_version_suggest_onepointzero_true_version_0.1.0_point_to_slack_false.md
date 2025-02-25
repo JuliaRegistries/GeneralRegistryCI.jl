@@ -46,7 +46,6 @@ Hello, I am an automated registration bot. I help manage the registration proces
     Either way, you need to mention the words "breaking" or "changelog", even if it is just to say "there are no breaking changes", or "see the changelog".
     </details>
 
-
 - This is a breaking change, but no release notes have been provided. Please add release notes that explain the breaking change.
     <details><summary>Example of adding release notes with breaking notice</summary>
 
@@ -68,6 +67,27 @@ Hello, I am an automated registration bot. I help manage the registration proces
     Either way, you need to mention the words "breaking" or "changelog", even if it is just to say "there are no breaking changes", or "see the changelog".
     </details>
 
+- This is a breaking change, but the release notes do not mention it. Please add a mention of the breaking change to the release notes (use the words "breaking" or "changelog").
+Given this is a pre-v1.0.0 release, you may have not intended to make a breaking change release. [More information](https://pkgdocs.julialang.org/v1/compatibility/#compat-pre-1.0) on Julia's handling of pre-v1.0.0 versioning.
+    <details><summary>Example of adding release notes with breaking notice</summary>
+
+    If you are using the comment bot `@JuliaRegistrator`, you can add release notes to this registration by re-triggering registration while specifying release notes:
+
+    ```
+    @JuliaRegistrator register
+
+    Release notes:
+
+    ## Breaking changes
+
+    - Explanation of breaking change, ideally with upgrade tips
+    - ...
+    ```
+
+    If you are using JuliaHub, trigger registration the same way you did the first time, but enter release notes that specify the breaking changes.
+
+    Either way, you need to mention the words "breaking" or "changelog", even if it is just to say "there are no breaking changes", or "see the changelog".
+    </details>
 
 - Example guideline failed. Please fix it.
 

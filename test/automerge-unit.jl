@@ -71,8 +71,9 @@ function comment_reference_test()
                 "_version_", version, "_point_to_slack_", point_to_slack)
                 reasons = [
                             AutoMerge.compat_violation_message(["julia"]),
-                            AutoMerge.breaking_explanation_message(true),
-                            AutoMerge.breaking_explanation_message(false),
+                            AutoMerge.breaking_explanation_message(true, v"1.0.0"),
+                            AutoMerge.breaking_explanation_message(false, v"1.0.0"),
+                            AutoMerge.breaking_explanation_message(true, v"0.2.0"),
                             "Example guideline failed. Please fix it."]
                 fail_text = AutoMerge.comment_text_fail(type, reasons, suggest_onepointzero, version; point_to_slack=point_to_slack)
 
@@ -353,13 +354,13 @@ end
         """
         body_bad_no_notes = ""
         breaking_label = GitHub.Label(; name="BREAKING")
-        @test AutoMerge.meets_breaking_explanation_check([breaking_label], body_good)[1]
-        @test AutoMerge.meets_breaking_explanation_check([breaking_label], body_good_changelog)[1]
-        @test !AutoMerge.meets_breaking_explanation_check([breaking_label], body_bad)[1]
-        @test !AutoMerge.meets_breaking_explanation_check([breaking_label], body_bad_no_notes)[1]
+        @test AutoMerge.meets_breaking_explanation_check([breaking_label], body_good, v"1.0.0")[1]
+        @test AutoMerge.meets_breaking_explanation_check([breaking_label], body_good_changelog, v"1.0.0")[1]
+        @test !AutoMerge.meets_breaking_explanation_check([breaking_label], body_bad, v"1.0.0")[1]
+        @test !AutoMerge.meets_breaking_explanation_check([breaking_label], body_bad_no_notes, v"1.0.0")[1]
 
         # Maybe this should fail as the label isn't applied by JuliaRegistrator, so the version isn't breaking?
-        @test AutoMerge.meets_breaking_explanation_check([], body_good)[1]
+        @test AutoMerge.meets_breaking_explanation_check([], body_good, v"1.0.0")[1]
     end
 end
 

@@ -332,11 +332,25 @@ function meets_breaking_explanation_check(data::GitHubAutoMergeData)
     # Look up PR here in case the labels are slow to be applied by the Registrator bot
     # which decides whether to add the BREAKING label
     pr = GitHub.pull_request(data.api, data.registry, data.pr.number; auth=data.auth)
-    return meets_breaking_explanation_check(pr.labels, pr.body)
+    return meets_breaking_explanation_check(pr.labels, pr.body, data.version)
 end
 
-function breaking_explanation_message(has_release_notes)
-    example_detail = """
+function breaking_explanation_message(has_release_notes, version::VersionNumber)
+    msg = if has_release_notes
+        """
+        This is a breaking change, but the release notes do not mention it. Please add a mention of the breaking change to the release notes (use the words \"breaking\" or \"changelog\").
+        """
+    else
+        """
+        This is a breaking change, but no release notes have been provided. Please add release notes that explain the breaking change.
+        """
+    end
+    if version < v"1.0.0"
+        msg *= """
+        Given this is a pre-v1.0.0 release, you may have not intended to make a breaking change release. [More information](https://pkgdocs.julialang.org/v1/compatibility/#compat-pre-1.0) on Julia's handling of pre-v1.0.0 versioning.
+        """
+    end
+    msg *= """
         <details><summary>Example of adding release notes with breaking notice</summary>
 
         If you are using the comment bot `@JuliaRegistrator`, you can add release notes to this registration by re-triggering registration while specifying release notes:
@@ -357,27 +371,17 @@ function breaking_explanation_message(has_release_notes)
         Either way, you need to mention the words \"breaking\" or \"changelog\", even if it is just to say "there are no breaking changes", or "see the changelog".
         </details>
     """
-    if has_release_notes
-        return """
-        This is a breaking change, but the release notes do not mention it. Please add a mention of the breaking change to the release notes (use the words \"breaking\" or \"changelog\").
-        $(example_detail)
-        """
-    else
-        return """
-        This is a breaking change, but no release notes have been provided. Please add release notes that explain the breaking change.
-        $(example_detail)
-        """
-    end
+    return msg
 end
 
-function meets_breaking_explanation_check(labels::Vector, body::AbstractString)
+function meets_breaking_explanation_check(labels::Vector, body::AbstractString, version::VersionNumber)
     if has_label(labels, BREAKING_LABEL)
         release_notes = get_release_notes(body)
         if release_notes === nothing
-            msg = breaking_explanation_message(false)
+            msg = breaking_explanation_message(false, version)
             return false, msg
         elseif !occursin(r"breaking|changelog", lowercase(release_notes))
-            msg = breaking_explanation_message(true)
+            msg = breaking_explanation_message(true, version)
             return false, msg
         else
             return true, ""
